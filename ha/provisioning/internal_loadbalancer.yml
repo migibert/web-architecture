@@ -1,0 +1,69 @@
+- hosts: internal_loadbalancer_1
+  roles:
+  - role: tersmitten.keepalived
+    keepalived_vrrp_scripts:
+      chk_haproxy:
+        script: 'killall -0 haproxy'
+        weight: 2
+        interval: 1
+    keepalived_vrrp_instances:
+      VI_1:
+        interface: eth1
+        state: MASTER
+        priority: 101
+        virtual_router_id: 51
+        authentication:
+          auth_type: PASS
+          auth_pass: 'password'
+        virtual_ipaddresses:
+        - '192.168.10.100 dev eth1 label eth1:1'
+        track_scripts:
+        - chk_haproxy
+
+- hosts: internal_loadbalancer_2
+  roles:
+  - role: tersmitten.keepalived
+    keepalived_vrrp_scripts:
+      chk_haproxy:
+        script: 'killall -0 haproxy'
+        weight: 2
+        interval: 1
+    keepalived_vrrp_instances:
+      VI_1:
+        interface: eth1
+        state: MASTER
+        priority: 100
+        virtual_router_id: 51
+        authentication:
+          auth_type: PASS
+          auth_pass: 'password'
+        virtual_ipaddresses:
+        - '192.168.10.100 dev eth1 label eth1:1'
+        track_scripts:
+        - chk_haproxy
+
+- hosts: loadbalancers
+  roles:
+  - role: info.haproxy
+    haproxy_frontends:
+    - name: 'frontend-mysite'
+      ip: 192.168.10.100
+      port: 80
+      maxconn: '1000'
+      options:
+      - forwardfor
+      default_backend: 'backend-mysite'
+    haproxy_backends:
+    - name: 'backend-mysite'
+      description: 'my site'
+      servers:
+      - name: 'backend-mysite-01'
+        ip: '192.168.10.10'
+        port: 80
+      - name: 'backend-mysite-02'
+        ip: '192.168.10.11'
+        port: 80
+      - name: 'backend-mysite-03'
+        ip: '192.168.10.12'
+        port: 80 
+

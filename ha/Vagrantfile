@@ -1,0 +1,129 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|  
+  config.vm.box = "ubuntu-precise_14.04_x64"
+  config.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-14.04-amd64-vbox.box"  
+
+  #################################################### Application webservers ###################################################
+  config.vm.define "webserver_1" do |webserver_1|
+    webserver_1.vm.network "private_network", ip: "192.168.10.10"
+    webserver_1.vm.provider :virtualbox do |vb|
+      vb.name = "webserver_1"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+    webserver_1.vm.provision "shell", inline: 'apt-get install -y apache2 && echo "WebServer_ 1" > /var/www/html/index.html'
+  end
+  config.vm.define "webserver_2" do |webserver_2|
+    webserver_2.vm.network "private_network", ip: "192.168.10.11"
+    webserver_2.vm.provider :virtualbox do |vb|
+      vb.name = "webserver_2"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+    webserver_2.vm.provision "shell", inline: 'apt-get install -y apache2 && echo "WebServer_ 2" > /var/www/html/index.html'
+  end
+  config.vm.define "webserver_3" do |webserver_3|
+    webserver_3.vm.network "private_network", ip: "192.168.10.12"
+    webserver_3.vm.provider :virtualbox do |vb|
+      vb.name = "webserver_3"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+    webserver_3.vm.provision "shell", inline: 'apt-get install -y apache2 && echo "WebServer_ 3" > /var/www/html/index.html'
+  end
+
+  ################################################### Application loadbalancers #################################################
+  config.vm.define "internal_loadbalancer_1" do |internal_loadbalancer_1|
+    internal_loadbalancer_1.vm.network "private_network", ip: "192.168.10.20"
+    internal_loadbalancer_1.vm.provider :virtualbox do |vb|
+      vb.name = "internal_loadbalancer_1"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end    
+  end
+  config.vm.define "internal_loadbalancer_2" do |internal_loadbalancer_2|
+    internal_loadbalancer_2.vm.network "private_network", ip: "192.168.10.21"
+    internal_loadbalancer_2.vm.provider :virtualbox do |vb|
+      vb.name = "internal_loadbalancer_2"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end    
+  end
+
+  ################################################### SSL Terminators ###########################################################
+  config.vm.define "ssl_terminator_1" do |ssl_terminator_1|
+    ssl_terminator_1.vm.network "private_network", ip: "192.168.10.30"
+    ssl_terminator_1.vm.provider :virtualbox do |vb|
+      vb.name = "ssl_terminator_1"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end    
+  end
+  config.vm.define "ssl_terminator_2" do |ssl_terminator_2|
+    ssl_terminator_2.vm.network "private_network", ip: "192.168.10.31"
+    ssl_terminator_2.vm.provider :virtualbox do |vb|
+      vb.name = "ssl_terminator_2"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+  end
+
+  ################################################### External loadbalancers ####################################################
+  config.vm.define "external_loadbalancer_1" do |external_loadbalancer_1|
+    external_loadbalancer_1.vm.network "private_network", ip: "192.168.10.40"
+    external_loadbalancer_1.vm.provider :virtualbox do |vb|
+      vb.name = "external_loadbalancer_1"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+  end
+  config.vm.define "external_loadbalancer_2" do |external_loadbalancer_2|
+    external_loadbalancer_2.vm.network "private_network", ip: "192.168.10.41"
+    external_loadbalancer_2.vm.provider :virtualbox do |vb|
+      vb.name = "external_loadbalancer_2"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+  end
+
+  ################################################### Firewalls #################################################################
+  config.vm.define "firewall_1" do |firewall_1|
+    firewall_1.vm.network "private_network", ip: "192.168.10.50"
+    firewall_1.vm.provider :virtualbox do |vb|
+      vb.name = "firewall_1"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+  end
+  config.vm.define "firewall_2" do |firewall_2|
+    firewall_2.vm.network "private_network", ip: "192.168.10.51"
+    firewall_2.vm.provider :virtualbox do |vb|
+      vb.name = "firewall_2"
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+  end
+
+  #################################################### Provisioning #############################################################
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
+      "loadbalancers" => ["internal_loadbalancer_1", "internal_loadbalancer_2"]
+    }
+    ansible.sudo = true
+    ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+    ansible.playbook = "provisioning/internal_loadbalancer.yml"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
+      "loadbalancers" => ["external_loadbalancer_1", "external_loadbalancer_2"]
+    }
+    ansible.sudo = true
+    ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+    ansible.playbook = "provisioning/external_loadbalancer.yml"
+  end
+end

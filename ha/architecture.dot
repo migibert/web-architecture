@@ -1,0 +1,23 @@
+graph architecture {
+    rankdir = UD;
+    node [shape=record];
+    { rank=same;  Firewall_1; Firewall_2 }
+    { rank=same;  LoadBalancer_EXT_1; LoadBalancer_EXT_2 }
+    { rank=same;  SSLTermination_1; SSLTermination_2 }
+    { rank=same;  LoadBalancer_Application_1; LoadBalancer_Application_2 }
+
+    Firewall_1 -- Firewall_2 [style="dashed"]
+    Firewall_1 -- { LoadBalancer_EXT_1 LoadBalancer_EXT_2 }
+    Firewall_2 -- { LoadBalancer_EXT_1 LoadBalancer_EXT_2 }
+    
+    LoadBalancer_EXT_1 -- LoadBalancer_EXT_2 [style="dashed"]
+    LoadBalancer_EXT_1 -- { SSLTermination_1 SSLTermination_2 }
+    LoadBalancer_EXT_2 -- { SSLTermination_1 SSLTermination_2 }
+    
+    SSLTermination_1 -- { LoadBalancer_Application_1 LoadBalancer_Application_2 }
+    SSLTermination_2 -- { LoadBalancer_Application_1 LoadBalancer_Application_2 }
+
+    LoadBalancer_Application_1 -- LoadBalancer_Application_2 [style="dashed"]
+    LoadBalancer_Application_1 -- { WebServer_1 WebServer_2 WebServer_3}
+    LoadBalancer_Application_2 -- { WebServer_1 WebServer_2 WebServer_3}
+}

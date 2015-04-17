@@ -1,0 +1,68 @@
+- hosts: external_loadbalancer_1
+  roles:  
+  - role: tersmitten.keepalived
+    keepalived_vrrp_scripts:
+      chk_haproxy:
+        script: 'killall -0 haproxy'
+        weight: 2
+        interval: 1
+    keepalived_vrrp_instances:
+      VI_1:
+        interface: eth1
+        state: MASTER
+        priority: 101
+        virtual_router_id: 42
+        authentication:
+          auth_type: PASS
+          auth_pass: 'password'
+        virtual_ipaddresses:
+        - '192.168.10.200 dev eth1 label eth1:1'
+        track_scripts:
+        - chk_haproxy
+
+- hosts: external_loadbalancer_2
+  roles:  
+  - role: tersmitten.keepalived
+    keepalived_vrrp_scripts:
+      chk_haproxy:
+        script: 'killall -0 haproxy'
+        weight: 2
+        interval: 1
+    keepalived_vrrp_instances:
+      VI_1:
+        interface: eth1
+        state: MASTER
+        priority: 100
+        virtual_router_id: 42
+        authentication:
+          auth_type: PASS
+          auth_pass: 'password'
+        virtual_ipaddresses:
+        - '192.168.10.200 dev eth1 label eth1:1'
+        track_scripts:
+        - chk_haproxy
+
+- hosts: loadbalancers
+  roles:
+  - role: info.haproxy
+    haproxy_global:
+      stats:
+        socket: /var/lib/haproxy.sock      
+    haproxy_frontends:
+    - name: 'frontend-ssl'
+      ip: 192.168.10.200
+      port: 80
+      maxconn: '1000'
+      options:
+      - forwardfor
+      default_backend: 'backend-ssl-terminator'
+    haproxy_backends:
+    - name: 'backend-ssl-terminator'
+      description: 'ssl termination'
+      servers:
+      - name: 'backend-ssl-terminator-01'
+        ip: '192.168.10.30'
+        port: 80
+      - name: 'backend-ssl-terminator-02'
+        ip: '192.168.10.31'
+        port: 80
