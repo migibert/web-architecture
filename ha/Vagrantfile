@@ -120,6 +120,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
+      "ssl_terminators" => ["ssl_terminator_1", "ssl_terminator_2"]
+    }
+    ansible.sudo = true
+    ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+    ansible.playbook = "provisioning/ssl_terminator.yml"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
       "loadbalancers" => ["external_loadbalancer_1", "external_loadbalancer_2"]
     }
     ansible.sudo = true

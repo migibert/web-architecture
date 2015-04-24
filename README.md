@@ -2,6 +2,8 @@ ansible-galaxy install info.haproxy
 
 ansible-galaxy install tersmitten.keepalived
 
+ansible-galaxy install migibert.stunnel
+
 vagrant up
 
 Sample web architecture, a request will follow this path:
