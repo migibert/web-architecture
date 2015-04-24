@@ -48,10 +48,12 @@
     haproxy_global:
       stats:
         socket: /var/lib/haproxy.sock      
+    haproxy_defaults:
+      mode: tcp
     haproxy_frontends:
     - name: 'frontend-ssl'
       ip: 192.168.10.200
-      port: 80
+      port: 443
       maxconn: '1000'
       options:
       - forwardfor
@@ -62,7 +64,7 @@
       servers:
       - name: 'backend-ssl-terminator-01'
         ip: '192.168.10.30'
-        port: 80
+        port: 443
       - name: 'backend-ssl-terminator-02'
         ip: '192.168.10.31'
-        port: 80
+        port: 443
