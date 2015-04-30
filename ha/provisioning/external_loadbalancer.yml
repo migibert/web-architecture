@@ -47,7 +47,7 @@
   - role: info.haproxy
     haproxy_global:
       stats:
-        socket: /var/lib/haproxy.sock      
+        socket: /var/lib/haproxy.sock
     haproxy_defaults:
       mode: tcp
     haproxy_frontends:
@@ -67,4 +67,8 @@
         port: 443
       - name: 'backend-ssl-terminator-02'
         ip: '192.168.10.31'
-        port: 443
+        port: 443  
+  - role: geerlingguy.firewall
+    firewall_allowed_tcp_ports:
+    - "22" 
+    - "443"

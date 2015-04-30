@@ -135,4 +135,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
     ansible.playbook = "provisioning/external_loadbalancer.yml"
   end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
+      "firewalls" => ["firewall_1", "firewall_2"]
+    }
+    ansible.sudo = true
+    ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+    ansible.playbook = "provisioning/firewall.yml"
+  end
 end

@@ -66,4 +66,7 @@
       - name: 'backend-mysite-03'
         ip: '192.168.10.12'
         port: 80 
-
+  - role: geerlingguy.firewall
+    firewall_allowed_tcp_ports:
+    - "22" 
+    - "80"
