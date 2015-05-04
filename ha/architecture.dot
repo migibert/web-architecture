@@ -6,18 +6,26 @@ graph architecture {
     { rank=same;  SSLTermination_1; SSLTermination_2 }
     { rank=same;  LoadBalancer_Application_1; LoadBalancer_Application_2 }
 
-    Firewall_1 -- Firewall_2 [style="dashed"]
+    Firewall_1 [label="Firewall 1 - 192.168.10.50"]
+    Firewall_2 [label="Firewall 2 - 192.168.10.51"]
+    LoadBalancer_EXT_1 [label="Loadbalancer EXT 1 - 192.168.10.40"]
+    LoadBalancer_EXT_2 [label="Loadbalancer EXT 2 - 192.168.10.41"]
+    LoadBalancer_Application_1 [label="Loadbalancer INT 1 - 192.168.10.20"]
+    LoadBalancer_Application_2 [label="Loadbalancer INT 2 - 192.168.10.21"]
+    SSLTermination_1 [label="SSL Terminator 1 - 192.168.10.30"]
+    SSLTermination_2 [label="SSL Terminator 2 - 192.168.10.31"]
+
+    Firewall_1 -- Firewall_2 [style="dashed" label="VRRP"]
     Firewall_1 -- { LoadBalancer_EXT_1 LoadBalancer_EXT_2 }
     Firewall_2 -- { LoadBalancer_EXT_1 LoadBalancer_EXT_2 }
     
-    LoadBalancer_EXT_1 -- LoadBalancer_EXT_2 [style="dashed"]
+    LoadBalancer_EXT_1 -- LoadBalancer_EXT_2 [style="dashed"] [label="VRRP"]
     LoadBalancer_EXT_1 -- { SSLTermination_1 SSLTermination_2 }
     LoadBalancer_EXT_2 -- { SSLTermination_1 SSLTermination_2 }
     
     SSLTermination_1 -- { LoadBalancer_Application_1 LoadBalancer_Application_2 }
     SSLTermination_2 -- { LoadBalancer_Application_1 LoadBalancer_Application_2 }
 
-    LoadBalancer_Application_1 -- LoadBalancer_Application_2 [style="dashed"]
-    LoadBalancer_Application_1 -- { WebServer_1 WebServer_2 WebServer_3}
-    LoadBalancer_Application_2 -- { WebServer_1 WebServer_2 WebServer_3}
+    LoadBalancer_Application_1 -- LoadBalancer_Application_2 [style="dashed" label="VRRP"]
+    { LoadBalancer_Application_1 LoadBalancer_Application_2 } -- { WebServer_1 WebServer_2 WebServer_3}
 }
